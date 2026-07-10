@@ -20,4 +20,12 @@ public record Report(int nFiles, int[] bands) {
         return Optional.ofNullable(errorMessage);
     }
 
+    public Report addReport(final Report newReport) {
+        final int[] newBands = new int[this.bands.length];
+        for (int i = 0; i < this.bands.length; i++) {
+            newBands[i] = this.bands[i] + newReport.bands()[i];
+        }
+        return new Report(this.nFiles + newReport.nFiles(), newBands);
+    }
+
 }

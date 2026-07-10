@@ -1,7 +1,4 @@
-package fsstat.asynchronous;
-
-import fsstat.Handler;
-import fsstat.Report;
+package fsstat;
 
 import java.io.IOException;
 import java.nio.file.Files;

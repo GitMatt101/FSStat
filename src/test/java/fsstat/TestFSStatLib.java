@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -32,6 +31,17 @@ class TestFSStatLib {
     @Test
     void testAsynchronous() throws ExecutionException, InterruptedException {
         final Report report = fsstat.asynchronous.FSStatLib.getFSReport(DIRECTORY, MAX_SIZE, N_BANDS).get();
+        assertAll(
+                () -> assertEquals(N_FILES, report.nFiles()),
+                () -> assertEquals(BANDS[0], report.bands()[0]),
+                () -> assertEquals(BANDS[1], report.bands()[1]),
+                () -> assertEquals(BANDS[2], report.bands()[2])
+        );
+    }
+
+    @Test
+    void testReactive() throws ExecutionException, InterruptedException {
+        final Report report = fsstat.reactive.FSStatLib.getFSReport(DIRECTORY, MAX_SIZE, N_BANDS).get();
         assertAll(
                 () -> assertEquals(N_FILES, report.nFiles()),
                 () -> assertEquals(BANDS[0], report.bands()[0]),
