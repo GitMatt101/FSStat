@@ -48,7 +48,11 @@ public class EventLoop extends Thread {
                         this.shutdown();
                     }
                 });
-            } catch (InterruptedException _) {}
+            } catch (InterruptedException e) {
+                this.report = new Report(0, new int[this.nBands + 1]);
+                this.report.signalError(e.getMessage());
+                this.shutdown();
+            }
         }
     }
 
@@ -79,6 +83,7 @@ public class EventLoop extends Thread {
         this.running = false;
         this.executor.shutdown();
         this.future.complete(this.report);
+        this.interrupt();
     }
 
     /**
