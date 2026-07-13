@@ -31,17 +31,22 @@ class TestFSStatLib {
     @Test
     void testAsynchronous() throws ExecutionException, InterruptedException {
         final Report report = fsstat.asynchronous.FSStatLib.getFSReport(DIRECTORY, MAX_SIZE, N_BANDS).get();
-        assertAll(
-                () -> assertEquals(N_FILES, report.nFiles()),
-                () -> assertEquals(BANDS[0], report.bands()[0]),
-                () -> assertEquals(BANDS[1], report.bands()[1]),
-                () -> assertEquals(BANDS[2], report.bands()[2])
-        );
+        this.checkReport(report);
     }
 
     @Test
     void testReactive() throws ExecutionException, InterruptedException {
         final Report report = fsstat.reactive.FSStatLib.getFSReport(DIRECTORY, MAX_SIZE, N_BANDS).get();
+        this.checkReport(report);
+    }
+
+    @Test
+    void testVirtual() throws ExecutionException, InterruptedException {
+        final Report report = fsstat.virtual.FSStatLib.getFSReport(DIRECTORY, MAX_SIZE, N_BANDS).get();
+        this.checkReport(report);
+    }
+
+    private void checkReport(final Report report) {
         assertAll(
                 () -> assertEquals(N_FILES, report.nFiles()),
                 () -> assertEquals(BANDS[0], report.bands()[0]),
