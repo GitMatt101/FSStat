@@ -2,15 +2,16 @@ package fsstat.view;
 
 public class DirectoryItem {
 
-    private final String path;
+    private String path;
     private boolean explored = false;
 
     public DirectoryItem(final String path) {
         this.path = path;
     }
 
-    public void markAsExplored() {
+    public void markAsExplored(final int nFiles) {
         this.explored = true;
+        this.path += " - files: " + nFiles;
     }
 
     public boolean isExplored() {

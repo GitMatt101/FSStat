@@ -40,24 +40,23 @@ public class EventLoop extends Thread {
         while (this.running) {
             try {
                 final String directory = this.queue.take();
-                while (this.paused) {
-                    try {
-                        synchronized (this) {
-                            this.wait();
-                        }
-                    } catch (InterruptedException _) {}
-                }
-                if (this.controller != null && !this.continuousComputation) {
-                    this.paused = true;
-                    this.controller.toggleViewPause();
+                if (this.controller != null) {
+                    while (this.paused) {
+                        try {
+                            synchronized (this) {
+                                this.wait();
+                            }
+                        } catch (InterruptedException _) {}
+                    }
+                    if (!this.continuousComputation) {
+                        this.paused = true;
+                        this.controller.toggleViewPause();
+                    }
                 }
                 this.executor.submit(() -> {
                     try {
                         final Report newReport = this.explorer.explore(directory, this.maxSize, this.nBands);
                         this.addReport(newReport);
-                        if (this.controller != null) {
-                            this.controller.addReport(newReport);
-                        }
                     } catch (IOException e) {
                         this.shutdown(e.getMessage());
                     }

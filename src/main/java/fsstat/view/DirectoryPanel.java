@@ -24,11 +24,11 @@ public class DirectoryPanel extends JPanel {
         SwingUtilities.invokeLater(this::repaint);
     }
 
-    public void markAsDone(final String directory) {
+    public void markAsDone(final String directory, final int nFiles) {
         SwingUtilities.invokeLater(() -> {
             for (int i = 0; i < this.listModel.size(); i++) {
                 if (this.listModel.get(i).toString().equals(directory)) {
-                    this.listModel.get(i).markAsExplored();
+                    this.listModel.get(i).markAsExplored(nFiles);
                 }
             }
             this.refreshList();

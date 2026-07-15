@@ -40,7 +40,7 @@ public class Controller {
 
     public void addReport(final Report report) {
         this.chartPanel.addData(report.bands());
-        this.directoryPanel.markAsDone(report.directory());
+        this.directoryPanel.markAsDone(report.directory(), report.nFiles());
     }
 
     public void addDirectory(final String directory) {
