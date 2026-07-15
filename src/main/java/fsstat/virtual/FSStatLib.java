@@ -24,7 +24,7 @@ public class FSStatLib {
     public static CompletableFuture<Report> getFSReport(final String directory, final long maxSize, final int nBands) {
         final Explorer explorer = new Explorer(_ -> {});
         return CompletableFuture.supplyAsync(() -> {
-            Report report = new Report(0, new int[nBands + 1]);
+            Report report = new Report(directory, 0, new int[nBands + 1]);
 
             try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
                 List<String> directories = Files.walk(Paths.get(directory))

@@ -1,5 +1,6 @@
 plugins {
     id("java")
+    application
 }
 
 group = "fsstat"
@@ -18,4 +19,8 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+application {
+    mainClass = "fsstat.Main"
 }

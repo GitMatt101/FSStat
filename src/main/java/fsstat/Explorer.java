@@ -42,7 +42,7 @@ public class Explorer {
                 } catch (IOException _) {}
             }
         });
-        return new Report(files.get(), sizes);
+        return new Report(directory, files.get(), sizes);
     }
 
 }

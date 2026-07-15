@@ -35,7 +35,7 @@ public class FSStatLib {
                 })
                 .subscribeOn(Schedulers.io())
                 .map(dir -> explorer.explore(dir, maxSize, nBands))
-                .reduce(new Report(0, new int[nBands + 1]), Report::addReport)
+                .reduce(new Report(directory, 0, new int[nBands + 1]), Report::addReport)
                 .toCompletionStage()
                 .toCompletableFuture();
     }

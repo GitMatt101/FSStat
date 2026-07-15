@@ -2,6 +2,7 @@ package fsstat.asynchronous;
 
 import fsstat.Explorer;
 import fsstat.Report;
+import fsstat.controller.Controller;
 
 import java.io.IOException;
 import java.util.concurrent.*;
@@ -18,18 +19,20 @@ public class EventLoop extends Thread {
     private boolean running = true;
     private Report report;
     private final CompletableFuture<Report> future = new CompletableFuture<>();
+    private boolean paused = true;
+    private boolean continuousComputation = false;
+    private final Controller controller;
 
-    /**
-     * Initializes the event loop.
-     *
-     * @param maxSize max size (in bytes) of a file
-     * @param nBands number of bands to define statistics
-     */
     public EventLoop(final long maxSize, final int nBands) {
+        this(maxSize, nBands, null);
+    }
+
+    public EventLoop(final long maxSize, final int nBands, final Controller controller) {
         this.explorer = new Explorer(this::addDirectoryToQueue);
         this.maxSize = maxSize;
         this.nBands = nBands;
-        this.report = new Report(0, new int[nBands + 1]);
+        this.report = new Report("", 0, new int[nBands + 1]);
+        this.controller = controller;
     }
 
     @Override
@@ -37,10 +40,24 @@ public class EventLoop extends Thread {
         while (this.running) {
             try {
                 final String directory = this.queue.take();
+                while (this.paused) {
+                    try {
+                        synchronized (this) {
+                            this.wait();
+                        }
+                    } catch (InterruptedException _) {}
+                }
+                if (this.controller != null && !this.continuousComputation) {
+                    this.paused = true;
+                    this.controller.toggleViewPause();
+                }
                 this.executor.submit(() -> {
                     try {
-                        final Report stats = this.explorer.explore(directory, this.maxSize, this.nBands);
-                        this.addReport(stats);
+                        final Report newReport = this.explorer.explore(directory, this.maxSize, this.nBands);
+                        this.addReport(newReport);
+                        if (this.controller != null) {
+                            this.controller.addReport(newReport);
+                        }
                     } catch (IOException e) {
                         this.shutdown(e.getMessage());
                     }
@@ -49,58 +66,53 @@ public class EventLoop extends Thread {
                     }
                 });
             } catch (InterruptedException e) {
-                this.report = new Report(0, new int[this.nBands + 1]);
+                this.report = new Report("", 0, new int[this.nBands + 1]);
                 this.report.signalError(e.getMessage());
                 this.shutdown();
             }
         }
     }
 
-    /**
-     * Adds a directory to explore to the queue.
-     *
-     * @param directory name of the directory
-     */
     public void addDirectoryToQueue(final String directory) {
         this.queue.add(directory);
         this.activeTasks.incrementAndGet();
+        if (this.controller != null) {
+            this.controller.addDirectory(directory);
+        }
     }
 
-    /**
-     * Adds a report to the current one.
-     * The number of files and the distributions of files are updated.
-     *
-     * @param newReport new report to include to the current one
-     */
     private synchronized void addReport(final Report newReport) {
-        this.report = this.report.addReport(newReport);
+        this.report = this.report.directory().isEmpty() ? newReport : this.report.addReport(newReport);
+        if (this.controller != null) {
+            this.controller.addReport(newReport);
+        }
     }
 
-    /**
-     * Shuts down the process.
-     */
-    private void shutdown() {
+    public void shutdown() {
         this.running = false;
         this.executor.shutdown();
         this.future.complete(this.report);
         this.interrupt();
     }
 
-    /**
-     * Shuts down the process while saving an error message.
-     *
-     * @param errorMessage the error that will be displayed
-     */
     private void shutdown(final String errorMessage) {
         this.report.signalError(errorMessage);
         this.shutdown();
     }
 
-    /**
-     * @return a {@link CompletableFuture} containing the final report
-     */
     public CompletableFuture<Report> getReport() {
         return this.future;
+    }
+
+    public synchronized void togglePause() {
+        this.paused = !this.paused;
+        if (!this.paused) {
+            this.notify();
+        }
+    }
+
+    public void toggleMode() {
+        this.continuousComputation = !this.continuousComputation;
     }
 
 }
